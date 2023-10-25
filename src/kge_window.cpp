@@ -1,8 +1,11 @@
 module;
 
+// External Deps
+#define STB_IMAGE_IMPLEMENTATION
 #include <GLAD/glad.h>
 #include <GLFW/glfw3.h>
 #include <GLM/glm.hpp>
+#include <STB/stb_image.h>
 
 // Standard library
 #include <functional>
@@ -11,20 +14,20 @@ module;
 #include <optional>
 #include <unordered_map>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <STB/stb_image.h>
-
 #define NDEBUG
 
-export module kge;
+export module kge:window;
 
+namespace kge
+{
 typedef void (*glfw_callback)(GLFWwindow*, int, int, int, int);
 #define GLFW_CB_PARAMS GLFWwindow *wnd, int key, int scancode, int action, int mods
 
-void gl_viewport_update(GLFWwindow* window, int width, int height)
+inline void gl_viewport_update(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
+} // namespace kge
 
 export namespace kge
 {
@@ -67,13 +70,24 @@ export namespace kge
 struct window_hint
 {
 	int hint;
-	int value;
+	union {
+		int id;
+		const char* value;
+	};
 };
 void add_hints(std::initializer_list<window_hint>&& hints)
 {
 	for (auto&& hint : hints)
 	{
-		glfwWindowHint(hint.hint, hint.value);
+		glfwWindowHint(hint.hint, hint.id);
+	}
+}
+
+void add_string_hints(std::initializer_list<window_hint>&& hints)
+{
+	for (auto&& hint : hints)
+	{
+		glfwWindowHintString(hint.hint, hint.value);
 	}
 }
 
@@ -86,6 +100,61 @@ class window
 	int m_old_width, m_old_height, m_old_xpos, m_old_ypos;
 	std::unordered_map<key_input, std::function<void()>> m_key_callbacks;
 	GLFWmonitor* m_monitor;
+
+	inline void glfw_position_update(int xpos, int ypos)
+	{
+		this->m_xpos = xpos;
+		this->m_ypos = ypos;
+	}
+
+	inline void glfw_size_update(int width, int height)
+	{
+		this->m_width = width;
+		this->m_height = height;
+	}
+
+	inline void set_callbacks()
+	{
+		glfwSetFramebufferSizeCallback(this->m_window, gl_viewport_update);
+
+		glfwSetWindowUserPointer(this->m_window, this);
+
+		glfwSetKeyCallback(this->m_window, [](GLFW_CB_PARAMS) -> void {
+			auto* it = static_cast<window*>(glfwGetWindowUserPointer(wnd));
+			if (it == nullptr)
+				return;
+			key_input keys = {key, scancode, action, mods};
+			auto callback = it->get_key_callbacks(keys);
+			if (callback.has_value())
+			{
+				(*callback.value())();
+			}
+		});
+
+		glfwSetWindowPosCallback(this->m_window, [](GLFWwindow* window, int xpos, int ypos) -> void {
+			static_cast<class window*>(glfwGetWindowUserPointer(window))->glfw_position_update(xpos, ypos);
+		});
+
+		glfwSetWindowSizeCallback(this->m_window, [](GLFWwindow* window, int width, int height) -> void {
+			static_cast<class window*>(glfwGetWindowUserPointer(window))->glfw_size_update(width, height);
+		});
+	}
+
+	void restore_old_values()
+	{
+		this->m_width = this->m_old_width;
+		this->m_height = this->m_old_height;
+		this->m_xpos = this->m_old_xpos;
+		this->m_ypos = this->m_old_ypos;
+	}
+
+	void set_old_values()
+	{
+		this->m_old_width = this->m_width;
+		this->m_old_height = this->m_height;
+		this->m_old_xpos = this->m_xpos;
+		this->m_old_ypos = this->m_ypos;
+	}
 
 public:
 	window(unsigned int width, unsigned int height, const char* title, const char* icon = nullptr)
@@ -102,12 +171,7 @@ public:
 		glfwMakeContextCurrent(this->m_window);
 
 		if (icon != nullptr)
-		{
-			GLFWimage image;
-			image.pixels = stbi_load(icon, &image.width, &image.height, 0, 4);
-			glfwSetWindowIcon(this->m_window, 1, &image);
-			stbi_image_free(image.pixels);
-		}
+			this->set_icon(icon);
 
 		if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 		{
@@ -116,29 +180,24 @@ public:
 			std::terminate();
 		}
 
-		glViewport(0, 0, this->m_width, this->m_height);
-		std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << '\n';
-		glfwSetFramebufferSizeCallback(this->m_window, gl_viewport_update);
-		glfwSetWindowUserPointer(this->m_window, this);
-		glfwSetKeyCallback(this->m_window, [](GLFW_CB_PARAMS) -> void {
-			auto* it = static_cast<window*>(glfwGetWindowUserPointer(wnd));
-			if (it == nullptr)
-				return;
-			key_input keys = {key, scancode, action, mods};
-			auto callback = it->get_key_callbacks(keys);
-			if (callback.has_value())
-			{
-				(*callback.value())();
-			}
-		});
+		this->set_callbacks();
+
 		this->set_key_callback({GLFW_KEY_F11, glfwGetKeyScancode(GLFW_KEY_F11), GLFW_PRESS, 0},
 							   [this]() { this->change_fullscreen(); });
+
+		glViewport(0, 0, this->m_width, this->m_height);
+
+		std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << '\n';
 	}
 
 	~window()
 	{
 		glfwSetWindowUserPointer(this->m_window, nullptr);
 		glfwDestroyWindow(this->m_window);
+		glfwSetWindowSizeCallback(nullptr, nullptr);
+		glfwSetWindowPosCallback(nullptr, nullptr);
+		glfwSetKeyCallback(nullptr, nullptr);
+		glfwSetFramebufferSizeCallback(nullptr, nullptr);
 		glfwTerminate();
 	}
 
@@ -155,15 +214,6 @@ public:
 
 	inline void clear()
 	{
-		GLFWmonitor* mode;
-		int width, height;
-		int xpos, ypos;
-		glfwGetWindowSize(this->m_window, &width, &height);
-		glfwGetWindowPos(this->m_window, &xpos, &ypos);
-		this->m_width = width;
-		this->m_height = height;
-		this->m_xpos = xpos;
-		this->m_ypos = ypos;
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
@@ -176,6 +226,7 @@ public:
 	void resize(glm::vec2 size)
 	{
 		glfwSetWindowSize(this->m_window, size.x, size.y);
+		glViewport(0, 0, size.x, size.y);
 	}
 
 	inline int get_width() const
@@ -201,27 +252,29 @@ public:
 			glfwSetWindowMonitor(this->m_window, nullptr, this->m_old_xpos, this->m_old_ypos, this->m_old_width,
 								 this->m_old_height, 0);
 			glfwSetWindowPos(this->m_window, this->m_old_xpos, this->m_old_ypos);
-			this->m_width = this->m_old_width;
-			this->m_height = this->m_old_height;
-			this->m_xpos = this->m_old_xpos;
-			this->m_ypos = this->m_old_ypos;
+			this->restore_old_values();
 			return;
 		}
 		this->m_fullscreen = true;
-		this->m_old_width = this->m_width;
-		this->m_old_height = this->m_height;
-		this->m_old_xpos = this->m_xpos;
-		this->m_old_ypos = this->m_ypos;
+		this->set_old_values();
 		const auto* mode = glfwGetVideoMode(this->m_monitor);
 		glfwSetWindowMonitor(this->m_window, this->m_monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 	}
 
-	void set_key_callback(key_input&& key, std::function<void()>&& callback)
+	void set_icon(const char* icon)
+	{
+		GLFWimage image;
+		image.pixels = stbi_load(icon, &image.width, &image.height, 0, 4);
+		glfwSetWindowIcon(this->m_window, 1, &image);
+		stbi_image_free(image.pixels);
+	}
+
+	inline void set_key_callback(key_input&& key, std::function<void()>&& callback)
 	{
 		this->m_key_callbacks.insert_or_assign(key, callback);
 	}
 
-	std::optional<std::function<void()>*> get_key_callbacks(const key_input& key)
+	auto get_key_callbacks(const key_input& key) -> std::optional<std::function<void()>*>
 	{
 		if (this->m_key_callbacks.find(key) != this->m_key_callbacks.end())
 		{
