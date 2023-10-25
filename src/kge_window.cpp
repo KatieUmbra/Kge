@@ -14,8 +14,6 @@ module;
 #include <optional>
 #include <unordered_map>
 
-#define NDEBUG
-
 export module kge:window;
 
 namespace kge
@@ -186,8 +184,6 @@ public:
 							   [this]() { this->change_fullscreen(); });
 
 		glViewport(0, 0, this->m_width, this->m_height);
-
-		std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << '\n';
 	}
 
 	~window()

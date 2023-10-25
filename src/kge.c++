@@ -2,4 +2,4 @@ export module kge;
 
 export import :window;
 
-export import renderer;
+export import kge_renderer;

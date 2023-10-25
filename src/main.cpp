@@ -1,6 +1,8 @@
 // Standard Library
 #include <iostream>
 
+#include "assert.hpp"
+#include <GLAD/glad.h>
 #include <GLFW/glfw3.h>
 
 import kge;
@@ -21,8 +23,11 @@ auto main() -> int
 
 	kge::window window{800, 800, "Hello OpenGL", icon_path};
 
+#ifdef DEBUG
+	GL_CALL(std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << '\n');
 	std::hash<kge::key_input> data;
 	std::cout << data({1, 2, 3, 4}) << '\n';
+#endif
 
 	while (window.loop())
 	{

@@ -4,7 +4,8 @@
 #include <iostream>
 #include <signal.h>
 
-#ifndef DEBUG
+#ifdef DEBUG
+
 #ifdef _MSC_VER
 #define BREAK() __debugbreak();
 #elif __clang__
@@ -17,7 +18,8 @@ namespace kge::debug
 {
 inline void gl_clear_error()
 {
-	while (glGetError() != GL_NO_ERROR);
+	while (glGetError() != GL_NO_ERROR)
+		;
 }
 inline bool gl_check_error()
 {
