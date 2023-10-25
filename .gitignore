@@ -7,3 +7,6 @@ build/*
 *.exe
 .cache/
 .cache/*
+.vs/
+libs/
+out/

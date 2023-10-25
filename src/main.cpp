@@ -15,7 +15,7 @@ auto main() -> int
 					{GLFW_CONTEXT_VERSION_MINOR, 6},
 					{GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE},
 					{GLFW_FLOATING, GL_TRUE},
-					{GLFW_DECORATED, GL_FALSE}});
+					{GLFW_DECORATED, GL_TRUE}});
 
 	const char* icon_path = SOURCE_DIRECTORY R"(/assets/icon.png)";
 

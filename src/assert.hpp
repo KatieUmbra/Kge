@@ -17,8 +17,7 @@ namespace kge::debug
 {
 inline void gl_clear_error()
 {
-	while (glGetError() != GL_NO_ERROR)
-		;
+	while (glGetError() != GL_NO_ERROR);
 }
 inline bool gl_check_error()
 {
