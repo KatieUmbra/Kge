@@ -33,6 +33,8 @@ CMake for linux expects the following
 you can copy the exact structure or change `CMakeLists.txt` to build with another custom structure.
 Although I plan to write a script to facilitate this task.
 
+the script should take care of everything, run `./Build -r` to run the app, `./Build -b` to build, `./Build -h` for help.
+
 ## Windows
 
 CMake for windows expects the following structure
