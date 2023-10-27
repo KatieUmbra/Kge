@@ -19,6 +19,8 @@ Windows
 
 - `Visual Studio 17 2022` or higher
 
+Steps:
+
 - Install the libraries needed, windows users will need to run this as administrator since the script creates symlinks `./kge.py install`
 
 ---
