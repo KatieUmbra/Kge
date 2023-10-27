@@ -9,20 +9,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_definitions(SOURCE_DIRECTORY="${CMAKE_SOURCE_DIR}")
 
-find_library(glfw
-	NAMES libglfw libglfw3 glfw glfw3
-	PATHS ${CMAKE_SOURCE_DIR}/libs /usr/local/lib
-)
-find_library(glad
-	NAMES libglad glad
-	PATHS ${CMAKE_SOURCE_DIR}/libs /usr/local/lib
-)
+add_subdirectory(${CMAKE_SOURCE_DIR}/libs/glfw)
+add_subdirectory(${CMAKE_SOURCE_DIR}/libs/glad)
+
+find_library(glfw NAMES glfw glfw3 libglfw libglfw3)
+find_library(glad NAMES glad libglad)
 
 IF(MSVC)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CMAKE_SOURCE_DIR}/libs/include ")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:library /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 ELSE()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I${CMAKE_SOURCE_DIR}/include -isystem /usr/local/include/")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -isystem ${CMAKE_SOURCE_DIR}libs/include")
 set(SUBSYSTEM_LINKER_OPTIONS "-mwindows")
 ENDIF()
 
@@ -55,10 +52,5 @@ add_executable(oglgame ${SOURCE})
 target_compile_features(oglgame PUBLIC cxx_std_20)
 target_link_libraries(oglgame PUBLIC kge)
 
-IF(WIN32)
-target_include_directories(kge PUBLIC ${CMAKE_SOURCE_DIR}/libs/include ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(oglgame PUBLIC ${CMAKE_SOURCE_DIR}/libs/include ${CMAKE_SOURCE_DIR}/include)
-ELSE()
-target_include_directories(kge PUBLIC /usr/local/include ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(oglgame PUBLIC /usr/local/include ${CMAKE_SOURCE_DIR}/include)
-ENDIF()
+target_include_directories(kge PUBLIC ${CMAKE_SOURCE_DIR}/libs/include)
+target_include_directories(oglgame PUBLIC ${CMAKE_SOURCE_DIR}/libs/include)
