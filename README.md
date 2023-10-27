@@ -19,13 +19,13 @@ Windows
 
 - `Visual Studio 17 2022` or higher
 
----
-
 - Install the libraries needed, windows users will need to run this as administrator since the script creates symlinks `./kge.py install`
+
+---
 
 - **FOR WINDOWS USERS ONLY** currently the glad2 python package appears to not work on windows, therefore you need to follow instructions
 
-	**If you want to building everthing from scratch:**
+	**If you want to build everthing from scratch:**
 
 	- open [this link](https://glad.dav1d.de/) and select the following
 		- Language: C/C++
@@ -51,7 +51,9 @@ Windows
 
 	**alternatively**
 
-	[download](https://files.catbox.moe/twf44g.zip) the prebuilt binaries
+	[download](https://files.catbox.moe/twf44g.zip) the prebuilt binaries and put them inside `./libs/binaries`
+
+---
 
 - build `./kge.py build` or build **and** run `./kge.py run`. the `run` command builds and runs the program, `build_no_run` only runs.
 
