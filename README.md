@@ -13,11 +13,12 @@ Linux
 
 - `ninja v1.11.1` or higher.
 - `llvm 16` or `gcc 14` or higher
-- `glad` installed with python
+- `glad` pip package
 
 Windows
 
 - `Visual Studio 17 2022` or higher
+- `requests` pip package
 
 Steps:
 
