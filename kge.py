@@ -12,7 +12,7 @@ import ctypes
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-logging.basicConfig(format="[%(levelname)s]: %(message)s\n")
+logging.basicConfig(format="[%(levelname)s]: %(message)s")
 parser = argparse.ArgumentParser(description = "Kge build helper script")
 parser.add_argument(
         "do",
@@ -56,17 +56,40 @@ def shutdown(message: str, code: int):
     logging.error("script had to exit: %s", message)
     sys.exit(code)
 
-def install():
-
-    if os.name == "nt":
-        admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-        if not admin:
-            logging.warn("ALWAYS READ THE SOURCE CODE OF SCRIPTS YOUR RUN.")
-            shutdown("install must be ran with administrator privileges on windows", 1)
-
+def windows_install():
+    admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    if not admin:
+        logging.warning("ALWAYS READ THE SOURCE CODE OF SCRIPTS YOUR RUN.")
+        shutdown("install must be ran with administrator privileges on windows", 1)
+    
     if Path("./libs/install.lock").exists():
         shutdown("Libs were already installed.", 0)
+    
+    logging.error("Windows installation of GLAD requires manual intervention, follow the instructions in README.md")
 
+    logging.info("Copying stb header(s)")
+    url = "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h"
+    request = requests.get(url)
+    with open("./libs/include/STB/stb_image.h", "wb") as file:
+        file.write(request.content)
+    
+    logging.info("Creating symlinks")
+    kdll = ctypes.windll.LoadLibrary("kernel32.dll")
+
+    dir = os.getcwd()
+    kdll.CreateSymbolicLinkW(dir + "\\libs\\include\\GLFW", dir + "\\libs\\glfw\\include\\GLFW", 1)
+    kdll.CreateSymbolicLinkW(dir + ".\\libs\\include\\GLM", dir + "\\libs\\glm\\glm", 1)
+    kdll.CreateSymbolicLinkW(dir + ".\\libs\\include\\GLAD", dir + "\\libs\\glad\\include\\glad", 1)
+    kdll.CreateSymbolicLinkW(dir + ".\\libs\\include\\KHR", dir + "\\libs\\glad\\include\\KHR", 1)
+
+    logging.info("writing lock file")
+    with open("./libs/install.lock", "w") as file:
+        file.write("Libs installed")
+    
+def linux_install():
+    if Path("./libs/install.lock").exists():
+        shutdown("Libs were already installed.", 0)
+    
     output = ""
     try:
         output = subprocess.run(["python3", "-m", "glad"], capture_output=True).stderr
@@ -87,16 +110,23 @@ def install():
     request = requests.get(url)
     with open("./libs/include/STB/stb_image.h", "wb") as file:
         file.write(request.content)
-
-    logging.info("creating symlinks")
     
+    logging.info("creating symlinks")
     Path("./libs/include/GLFW").symlink_to("./libs/glfw/include/GLFW")
     Path("./libs/include/GLM").symlink_to("./libs/glm/glm")
-    Path("./libs/include/GLAD").symlink_to("./libs/glad/include/glad/")
+    Path("./libs/include/GLAD").symlink_to("./libs/glad/include/glad")
+    Path("./libs/include/KHR").symlink_to("./libs/glad/include/KHR")
 
     logging.info("writing lock file")
     with open("./libs/install.lock", "w") as file:
         file.write("Libs installed")
+
+def install():
+
+    if os.name == "nt":
+        windows_install()
+    else:
+        linux_install()
 
 
 def build():
@@ -109,7 +139,7 @@ def build():
     logging.info("Building cmake files")
     try:
         if os.name == "nt":
-            subprocess.run(f"{cmake_cmd} -B build -G 'Visual Studio 17 2022'", shell=True)
+            subprocess.run(f'{cmake_cmd} -B build -G "Visual Studio 17 2022"', shell=True)
         else:
             subprocess.run(f"{cmake_cmd} -B build -G Ninja", shell=True)
     
@@ -123,13 +153,19 @@ def build():
 def run():
     build()
     try:
-        subprocess.run("./build/oglgame", shell=True)
+        if os.name == "nt":
+            subprocess.run(".\\build\\Debug\\oglgame.exe", shell=True)
+        else:
+            subprocess.run("./build/oglgame", shell=True)
     except subprocess.CalledProcessError:
         logging.error("error during the execution of the binary")
 
 def clean():
     if os.name == "nt":
-        subprocess.run(["rd", "/s", "/q", "build"])
+        try:
+            subprocess.run(["rm", "-r", ".\\build"])
+        except FileNotFoundError:
+            pass
     else:
         subprocess.run(["rm", "-rf", "build"])
 
@@ -142,7 +178,9 @@ def verify_software():
     verify_program("cmake")
     if os.name == 'nt':
         logging.info("verifying visual studio install.")
-        verify_program("cl")
+        cl = program_exists("cl")
+        if not cl:
+            logging.warning("Couldn't find cl.exe, make sure visual studio is installed.")
     else:
         verify_program("ninja")
         clang = program_exists("clang")
@@ -162,7 +200,7 @@ elif argument == "run":
     logging.info("execution finished")
 elif argument == "run_no_build":
     try:
-        subprocess.run("./build/oglgame", shell=True)
+        subprocess.run(".\\build\\Debug\\oglgame.exe", shell=True)
     except subprocess.CalledProcessError:
         logging.error("error during the execution of the binary")
     logging.info("execution finished")

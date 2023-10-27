@@ -9,18 +9,20 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_definitions(SOURCE_DIRECTORY="${CMAKE_SOURCE_DIR}")
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/libs/glfw)
-add_subdirectory(${CMAKE_SOURCE_DIR}/libs/glad)
-
-find_library(glfw NAMES glfw glfw3 libglfw libglfw3)
-find_library(glad NAMES glad libglad)
-
 IF(MSVC)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CMAKE_SOURCE_DIR}/libs/include ")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:library /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+
+find_library(glfw NAMES glfw glfw3 libglfw libglfw3 PATHS ${CMAKE_SOURCE_DIR}/libs/binaries)
+find_library(glad NAMES glad libglad PATHS ${CMAKE_SOURCE_DIR}/libs/binaries)
 ELSE()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -isystem ${CMAKE_SOURCE_DIR}libs/include")
 set(SUBSYSTEM_LINKER_OPTIONS "-mwindows")
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/libs/glfw)
+add_subdirectory(${CMAKE_SOURCE_DIR}/libs/glad)
+find_library(glfw NAMES glfw glfw3 libglfw libglfw3)
+find_library(glad NAMES glad libglad)
 ENDIF()
 
 add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
