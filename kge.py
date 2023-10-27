@@ -200,7 +200,10 @@ elif argument == "run":
     logging.info("execution finished")
 elif argument == "run_no_build":
     try:
-        subprocess.run(".\\build\\Debug\\oglgame.exe", shell=True)
+        if os.name == "nt":
+            subprocess.run(".\\build\\Debug\\oglgame.exe", shell=True)
+        else:
+            subprocess.run("./build/oglgame", shell=True)
     except subprocess.CalledProcessError:
         logging.error("error during the execution of the binary")
     logging.info("execution finished")

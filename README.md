@@ -58,6 +58,8 @@ Steps:
 
 ---
 
-- build `python kge.py build` or build **and** run `python kge.py run`. the `run` command builds and runs the program, `build_no_run` only runs.
+- Build `python kge.py build`
+- Build and run `python kge.py run`
+- run without building `python kge.py run_no_build`
 
 - Use the binary inside `./build/Debug/kge.lib` or `./build/libkge.a`
