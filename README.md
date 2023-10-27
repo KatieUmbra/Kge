@@ -8,7 +8,7 @@ To build this project you will need:
 
 - `cmake 3.28-rc2` at the very least
 - `python 3.11` or higher
-- `glad` installed with python [src](https://github.com/Olgardos/glad)
+- `glad` installed with python
 
 Linux
 
