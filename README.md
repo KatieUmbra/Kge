@@ -22,7 +22,7 @@ Windows
 
 Steps:
 
-- Install the libraries needed, windows users will need to run this as administrator since the script creates symlinks `./kge.py install`
+- Install the libraries needed, windows users will need to run this as administrator since the script creates symlinks, run `python kge.py install`
 
 ---
 
@@ -50,7 +50,7 @@ Steps:
 
 	For glad you'll find `glad.lib` inside `./libs/glad/build/Release`
 
-	move these inside ./libs/binaries.
+	move these inside `./libs/binaries`.
 
 	**alternatively**
 
@@ -58,6 +58,6 @@ Steps:
 
 ---
 
-- build `./kge.py build` or build **and** run `./kge.py run`. the `run` command builds and runs the program, `build_no_run` only runs.
+- build `python kge.py build` or build **and** run `python kge.py run`. the `run` command builds and runs the program, `build_no_run` only runs.
 
 - Use the binary inside `./build/Debug/kge.lib` or `./build/libkge.a`
