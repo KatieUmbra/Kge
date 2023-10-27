@@ -4,57 +4,22 @@ WIP
 
 # Building
 
-To build this project you will need `cmake 3.28-rc2` at the very least
+To build this project you will need:
 
-## Linux
+- `cmake 3.28-rc2` at the very least
+- `python 3.11` or higher
+- `glad` installed with python [src](https://github.com/Olgardos/glad)
 
-for linux besides `cmake 3.28` you will need `ninja v1.11.1` or higher.
+Linux
 
-CMake for linux expects the following
+- `ninja v1.11.1` or higher.
+- `llvm 16` or `gcc 14` or higher
 
-```
-.
-└── /usr/local/
-    ├── include/
-    │   ├── GLAD/
-    │   │   └── glad.h
-    │   ├── GLFW/
-    │   │   └── glfw3.h
-    │   ├── GLM/
-    │   │   ├── glm.hpp
-    │   │   └── other glm files...
-    │   └── STB/
-    │       └── stb_image.h
-    └── lib/
-        ├── libglad.a
-        └── libglfw3.a
-```
+Windows
 
-you can copy the exact structure or change `CMakeLists.txt` to build with another custom structure.
-Although I plan to write a script to facilitate this task.
+- `Visual Studio 17 2022` or higher
 
-the script should take care of everything, run `./Build -r` to run the app, `./Build -b` to build, `./Build -h` for help.
+---
 
-## Windows
-
-CMake for windows expects the following structure
-
-```
-.
-└── libs/
-    ├── include/
-    │   ├── GLAD/
-    │   │   └── glad.h
-    │   ├── GLFW/
-    │   │   └── glfw3.h
-    │   ├── GLM/
-    │   │   ├── glm.hpp
-    │   │   └── other glm files...
-    │   └── STB/
-    │       └── stb_image.h
-    ├── libglfw3.lib
-    └── libglad.lib
-```
-
-the easiest way to do so is to extract the `bin/libs.zip` folder inside `./libs`, it contains the
-built libraries aswell as the correct includes, although building manually is still encouraged.
+- Install the libraries needed, windows users will need to run this as administrator since the script creates symlinks `./kge.py install`
+- build `./kge.py build` or build **and** run `./kge.py run`. the `run` command builds and runs the program, `build_no_run` only runs.

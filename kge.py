@@ -20,7 +20,7 @@ parser.add_argument(
         type=str,
         nargs=1,
         choices=["run", "run_no_build", "build", "clean", "install"],
-        help="Action to do [run, build, clean, install]")
+        help="Action to do [run, run_no_build, build, clean, install]")
 
 cmake_cmd = "cmake"
 
